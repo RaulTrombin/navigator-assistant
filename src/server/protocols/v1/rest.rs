@@ -7,6 +7,12 @@ use std::str::FromStr;
 #[folder = "src/server/protocols/v1/frontend"]
 struct Asset;
 
+// this is how to host a flutter spa interface. todo: verify content then host, if not host embedded.
+async fn index(_req: HttpRequest) -> Result<NamedFile> {
+    let path: PathBuf = "./files/index.html".parse().unwrap();
+    Ok(NamedFile::open(path)?)
+}
+
 fn handle_embedded_file(path: &str) -> HttpResponse {
     match Asset::get(path) {
         Some(content) => HttpResponse::Ok()
