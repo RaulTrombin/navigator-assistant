@@ -11,6 +11,13 @@ pub async fn run() -> std::io::Result<()> {
     let server = HttpServer::new(|| {
         App::new()
             .wrap(middleware::Logger::default())
+            .route("/spa", web::get().to(index))
+            .service(
+                spa()
+                  .index_file("examples/assets/index.html")
+                  .static_resources_location("examples/assets/")
+                  .finish()
+              )
             .service(protocols::v1::rest::index)
             .service(protocols::v1::rest::dist)
             .service(protocols::v1::rest::echo)
