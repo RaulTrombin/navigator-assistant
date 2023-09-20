@@ -34,6 +34,21 @@ pub mod package {
         }
     }
 
+    impl FromStr for hardware_manager::UserLed {
+        type Err = Box<dyn Error>;
+
+        fn from_str(s: &str) -> Result<Self, Self::Err> {
+            let s = s.to_lowercase();
+
+            match s.as_str() {
+                "led1" => Ok(hardware_manager::UserLed::Led1),
+                "led2" => Ok(hardware_manager::UserLed::Led2),
+                "led3" => Ok(hardware_manager::UserLed::Led3),
+                _ => Err(format!("{} is not a valid UserLed variant", s).into()),
+            }
+        }
+    }
+
     impl FromStr for hardware_manager::PwmChannel {
         type Err = Box<dyn Error>;
 
@@ -75,6 +90,20 @@ pub mod package {
 
     pub fn set_pwm_freq_hz(freq: f32) -> String {
         hardware_manager::set_pwm_freq_hz(freq);
+        "success".to_string()
+    }
+
+    pub fn set_led(select: hardware_manager::UserLed, state: bool) -> String {
+        hardware_manager::set_led(select , state);
+        "success".to_string()
+    }
+
+    pub fn get_led(select: hardware_manager::UserLed) -> String {
+        hardware_manager::get_led(select).to_string()
+    }
+
+    pub fn set_neopixel(rgb_array: Vec<[u8; 3]>) -> String {
+        hardware_manager::set_neopixel(rgb_array);
         "success".to_string()
     }
 
