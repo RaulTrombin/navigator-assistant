@@ -276,6 +276,60 @@
             channelContainer.appendChild(input);
             channelContainer.appendChild(br);
         }
+
+
+        const wsBaseUrl = `ws://${location.host}/ws`; // WebSocket URL
+
+let ws; // WebSocket object
+
+function initWebSocket() {
+    try {
+        ws = new WebSocket(wsBaseUrl);
+
+        ws.onopen = function () {
+            console.log("WebSocket connection opened.");
+        };
+
+        ws.onmessage = function (event) {
+            // Handle incoming WebSocket messages here
+            const data = JSON.parse(event.data);
+
+            if (data.id === "BlueOS_ID_0123") {
+                // Update sensor readings based on WebSocket data
+                const sensorTable = document.getElementById("sensor-table");
+                sensorTable.innerHTML = "";
+
+                data.input.forEach((input) => {
+                    const row = sensorTable.insertRow();
+                    const sensorTypeCell = row.insertCell(0);
+                    const valueCell = row.insertCell(1);
+                    const unitCell = row.insertCell(2);
+
+                    sensorTypeCell.textContent = input.type;
+                    unitCell.textContent = input.unit;
+                    if (Array.isArray(input.value)) {
+                        const roundedValues = input.value.map((val) =>
+                            val.toFixed(2)
+                        );
+                        valueCell.textContent = roundedValues.join(", ");
+                    } else {
+                        valueCell.textContent = input.value.toFixed(2);
+                    }
+                });
+            }
+        };
+
+        ws.onclose = function () {
+            console.log("WebSocket connection closed.");
+            // You may want to handle reconnection logic here
+        };
+    } catch (error) {
+        console.error("Error initializing WebSocket:", error);
+    }
+}
+
+initWebSocket();
+
     </script>
 </body>
 
