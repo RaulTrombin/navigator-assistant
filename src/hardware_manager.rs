@@ -1,5 +1,7 @@
+use crate::server::protocols::v1::{packages, websocket};
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 use std::convert::From;
 use std::sync::{Arc, Mutex, RwLock};
 use std::thread;
@@ -7,7 +9,7 @@ use std::thread;
 #[derive(Default)]
 struct NavigationManager {
     navigator: navigator_rs::Navigator,
-    sentinel: Option<std::thread::JoinHandle<()>>,
+    monitor: Option<std::thread::JoinHandle<()>>,
 }
 #[derive(Debug, Clone, Default, Copy)]
 struct Data {
@@ -47,17 +49,27 @@ impl NavigationManager {
         &NAVIGATOR
     }
 
-    pub fn init_sensor_reading() {
-        NavigationManager::get_instance().lock().unwrap().sentinel =
-            Some(thread::spawn(|| NavigationManager::sensor_reading(500)))
+    pub fn init_monitor() {
+        NavigationManager::get_instance().lock().unwrap().monitor =
+            Some(thread::spawn(|| NavigationManager::monitor(500)))
     }
 
-    fn sensor_reading(refresh_interval: u64) {
+    fn monitor(refresh_interval: u64) {
         loop {
             let reading = with_navigator!().read_all();
             *DATA.write().unwrap() = Data { state: reading };
+
+            // Todo, websockeat inputs broadcast enable, and if sync/not(different interval)
+            NavigationManager::websocket_broadcast();
+
             thread::sleep(std::time::Duration::from_millis(refresh_interval));
         }
+    }
+
+    fn websocket_broadcast() {
+        let package: crate::server::protocols::v1::structures::AnsPackage =
+            packages::reading(packages::Sensors::All);
+        websocket::send_to_websockets(json!(package));
     }
 }
 
@@ -151,7 +163,7 @@ pub fn init() {
 }
 
 pub fn init_auto_reading() {
-    NavigationManager::init_sensor_reading();
+    NavigationManager::init_monitor();
 }
 
 pub fn set_led(select: UserLed, state: bool) {
