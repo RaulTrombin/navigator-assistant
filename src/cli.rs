@@ -1,35 +1,62 @@
 use clap::{Arg, Command};
 
-pub fn parse_args() -> (String, String) {
-    let matches = Command::new("Data Logger")
+pub fn parse_args() -> (String, String, u64, bool) {
+    let matches = Command::new("Nagivator Assistant")
         .version("1.0")
         .author("BlueRobotics")
-        .about("Logs sensor data to a CSV file")
+        .about("Start your navigator assistant server")
         .arg(
-            Arg::new("directory")
+            Arg::new("datalogger_directory")
                 .short('d')
                 .long("directory")
-                .value_name("DIRECTORY")
                 .required(false),
         )
         .arg(
-            Arg::new("filename")
+            Arg::new("datalogger_filename")
                 .short('f')
                 .long("filename")
-                .value_name("FILENAME")
+                .required(false),
+        )
+        .arg(
+            Arg::new("datalogger_rate")
+                .short('r')
+                .long("rate")
+                .value_parser(clap::value_parser!(u64))
+                .required(false),
+        )
+        .arg(
+            Arg::new("datalogger_enable")
+                .short('e')
+                .long("enable")
+                .value_parser(clap::value_parser!(bool))
                 .required(false),
         )
         .get_matches();
 
-    let directory = matches
+    let datalogger_directory = matches
         .get_one::<String>("directory")
         .map(|d| d.to_string())
-        .unwrap_or(".".to_string());
+        .unwrap_or("./".to_string());
 
-    let filename = matches
-        .get_one::<String>("filename")
+    let datalogger_filename = matches
+        .get_one::<String>("datalogger_filename")
         .map(|f| f.to_string())
         .unwrap_or("data.csv".to_string());
 
-    (directory, filename)
+    let datalogger_rate = matches
+        .get_one::<u64>("datalogger_rate")
+        .copied()
+        .unwrap_or(60000);
+
+    let datalogger_enable = matches
+        .get_one::<bool>("datalogger_enable")
+        .copied()
+        .unwrap_or(false);
+
+    (
+        datalogger_directory,
+        datalogger_filename,
+        datalogger_rate,
+        datalogger_enable,
+    )
 }
