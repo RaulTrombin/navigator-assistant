@@ -65,7 +65,7 @@ impl NavigationManager {
 
     fn monitor(refresh_interval: u64) {
         log::info!("Monitor: Started");
-        let refresh_interval_us = refresh_interval*1000;
+        let refresh_interval_us = refresh_interval * 1000;
         loop {
             let time_start = std::time::Instant::now();
 
@@ -126,7 +126,7 @@ impl NavigationManager {
     fn websocket_broadcast() {
         // This package is broadcasted when it's created
         let _package: crate::server::protocols::v1::structures::AnsPackage =
-            packages::reading(packages::Sensors::All);
+            packages::reading(packages::Sensors::All, true);
     }
 }
 
@@ -240,27 +240,55 @@ pub fn set_neopixel(rgb_array: Vec<[u8; 3]>) {
 }
 
 pub fn read_accel() -> AxisData {
-    DATA.read().unwrap().state.accelerometer.into()
+    with_navigator!().read_accel().into()
 }
 
 pub fn read_gyro() -> AxisData {
-    DATA.read().unwrap().state.gyro.into()
+    with_navigator!().read_gyro().into()
 }
 
 pub fn read_mag() -> AxisData {
-    DATA.read().unwrap().state.magnetometer.into()
+    with_navigator!().read_mag().into()
 }
 
 pub fn read_temperature() -> f32 {
-    DATA.read().unwrap().state.temperature
+    with_navigator!().read_temperature()
 }
 
 pub fn read_pressure() -> f32 {
-    DATA.read().unwrap().state.pressure
+    with_navigator!().read_pressure()
 }
 
 pub fn read_adc_all() -> ADCData {
-    DATA.read().unwrap().state.adc.into()
+    with_navigator!().read_adc_all().into()
+}
+
+pub mod cached {
+    use super::{ADCData, AxisData, DATA};
+
+    pub fn read_accel() -> AxisData {
+        DATA.read().unwrap().state.accelerometer.into()
+    }
+
+    pub fn read_gyro() -> AxisData {
+        DATA.read().unwrap().state.gyro.into()
+    }
+
+    pub fn read_mag() -> AxisData {
+        DATA.read().unwrap().state.magnetometer.into()
+    }
+
+    pub fn read_temperature() -> f32 {
+        DATA.read().unwrap().state.temperature
+    }
+
+    pub fn read_pressure() -> f32 {
+        DATA.read().unwrap().state.pressure
+    }
+
+    pub fn read_adc_all() -> ADCData {
+        DATA.read().unwrap().state.adc.into()
+    }
 }
 
 pub fn set_pwm_channel_value(channel: PwmChannel, value: u16) {
