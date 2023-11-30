@@ -40,7 +40,8 @@ pub struct OutputRequest {
 }
 #[derive(Debug, Serialize, Deserialize)]
 pub enum OutputDevices {
-    PWM(Pwm),
+    #[serde(rename = "PWM")]
+    Pwm(Pwm),
     UserLED(UserLED),
     NeoPixel(NeoPixel),
 }
