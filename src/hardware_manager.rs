@@ -70,9 +70,8 @@ impl NavigationManager {
         )
     }
 
-    fn monitor(refresh_interval: u64) {
+    fn monitor(refresh_interval_us: u64) {
         log::info!("Monitor: Started");
-        let refresh_interval_us = refresh_interval * 1000;
         loop {
             let time_start = std::time::Instant::now();
 
@@ -80,7 +79,7 @@ impl NavigationManager {
 
             let reading = navigator_rs::SensorData {
                 adc: {
-                    if refresh_interval < 10 {
+                    if refresh_interval_us < 10000 {
                         navigator_rs::ADCData { channel: [0.0; 4] }
                     } else {
                         lock.navigator.read_adc_all()
@@ -100,7 +99,7 @@ impl NavigationManager {
             let time_elapsed = time_start.elapsed().as_micros() as u64;
 
             if time_elapsed > refresh_interval_us {
-                log::info!("Monitor: Something went wrong, measurements not concluded with reading interval {refresh_interval} ms, time elapsed: {time_elapsed} ms");
+                log::info!("Monitor: Something went wrong, measurements not concluded with reading interval {refresh_interval_us} us, time elapsed: {time_elapsed} us");
                 NavigationManager::websocket_broadcast();
                 continue;
             }
@@ -126,7 +125,7 @@ impl NavigationManager {
 
             logger.log_data(&reading).expect("Failed to log data");
 
-            thread::sleep(std::time::Duration::from_millis(refresh_interval));
+            thread::sleep(std::time::Duration::from_micros(refresh_interval));
         }
     }
 
